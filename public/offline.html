@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline Mode - Luxeshop POS</title>
+    <link rel="stylesheet" href="/css/app.css">
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 1rem;
+            text-align: center;
+        }
+        .offline-card {
+            max-width: 480px;
+            padding: 3rem 2rem;
+        }
+        .offline-icon {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            display: inline-block;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); opacity: 0.8; }
+        }
+    </style>
+</head>
+<body>
+    <div class="glass-panel offline-card">
+        <span class="offline-icon">📡</span>
+        <h1 class="auth-title" style="margin-bottom: 0.75rem;">No Connection</h1>
+        <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; margin-bottom: 2rem;">
+            The system cannot reach the server. Check your network connection and try again. If you were in the middle of a sale, it has been saved locally and will sync when the connection is restored.
+        </p>
+        <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--card-border); padding: 1rem; border-radius: var(--radius-sm); margin-bottom: 2rem;">
+            <p style="font-size: 0.85rem; color: var(--accent-amber); font-weight: 600;">
+                Pending offline sales will be uploaded automatically once you are back online.
+            </p>
+        </div>
+        <button onclick="window.location.reload()" class="btn-primary" style="width: auto; padding: 0.75rem 2rem;">🔄 Retry Connection</button>
+    </div>
+</body>
+</html>
