@@ -84,12 +84,12 @@ Route::middleware(['auth', CheckSubscription::class])->group(function () {
     Route::post('/attendance/toggle', [AuthController::class, 'toggleAttendance'])->name('attendance.toggle');
 
     // POS routes (Cashier & Staff — dynamic redirect for Restaurant/Hotel)
-    Route::get('/pos', function () {
+    Route::get('/pos', function (\Illuminate\Http\Request $request) {
         $tenant = auth()->user()->tenant;
         if ($tenant && $tenant->isRestaurantOrHotel()) {
             return redirect()->route('restaurant.tables');
         }
-        return app(POSController::class)->index();
+        return app(POSController::class)->index($request);
     })->name('pos');
     Route::get('/pos/scan', [POSController::class, 'scanProduct'])->name('pos.scan');
     Route::post('/pos/checkout', [POSController::class, 'checkout'])->name('pos.checkout');
