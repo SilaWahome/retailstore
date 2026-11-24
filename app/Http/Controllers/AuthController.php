@@ -141,10 +141,20 @@ class AuthController extends Controller
             ])->onlyInput('email');
         }
 
+        $request->session()->forget([
+            'tenant_id',
+            'impersonating_from_saas',
+            'original_superadmin_id',
+            'impersonated_tenant_name',
+        ]);
+
         if (Auth::attempt($credentials, $request->has('remember'))) {
             RateLimiter::clear($throttleKey);
             $request->session()->regenerate();
             $request->session()->forget('url.intended');
+            if (Auth::user()?->tenant_id) {
+                session(['tenant_id' => Auth::user()->tenant_id]);
+            }
             return redirect('/');
         }
 

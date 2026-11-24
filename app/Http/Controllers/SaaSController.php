@@ -227,7 +227,7 @@ class SaaSController extends Controller
             }
         }
 
-        session()->forget(['impersonating_from_saas', 'original_superadmin_id', 'impersonated_tenant_name']);
+        session()->forget(['tenant_id', 'impersonating_from_saas', 'original_superadmin_id', 'impersonated_tenant_name']);
 
         return redirect()->route('saas')->with('success', 'Returned to SaaS Superadmin Dashboard.');
     }
