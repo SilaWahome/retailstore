@@ -206,6 +206,23 @@
 
         <div class="grid-2">
             <div class="form-group">
+                <label class="form-label" for="sold_by">Sold By *</label>
+                <select class="form-input" id="sold_by" name="sold_by" style="padding: 0.7rem;" required>
+                    <option value="unit" selected>Unit / Piece</option>
+                    <option value="weight">Weight (kg / g)</option>
+                    <option value="volume">Volume (L / ml)</option>
+                    <option value="length">Length (m / cm)</option>
+                    <option value="pack">Pack / Box</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="base_unit">Base Unit *</label>
+                <input class="form-input" type="text" id="base_unit" name="base_unit" value="pcs" required placeholder="e.g. pcs, kg, L, pack">
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <div class="form-group">
                 <label class="form-label" for="low_stock_threshold">Low Stock Warning Limit *</label>
                 <input class="form-input" type="number" id="low_stock_threshold" name="low_stock_threshold" value="5" required placeholder="5">
             </div>
@@ -283,6 +300,23 @@
                 </div>
             </div>
 
+            <div class="grid-2">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label" for="edit-sold-by">Sold By *</label>
+                    <select class="form-input" id="edit-sold-by" name="sold_by" style="padding: 0.7rem;" required>
+                        <option value="unit">Unit / Piece</option>
+                        <option value="weight">Weight (kg / g)</option>
+                        <option value="volume">Volume (L / ml)</option>
+                        <option value="length">Length (m / cm)</option>
+                        <option value="pack">Pack / Box</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label" for="edit-base-unit">Base Unit *</label>
+                    <input class="form-input" type="text" id="edit-base-unit" name="base_unit" value="pcs" required>
+                </div>
+            </div>
+
             <div class="form-group" style="margin-bottom: 0;">
                 <label class="form-label" for="edit-low-stock-threshold">Low Stock Warning Limit *</label>
                 <input class="form-input" type="number" id="edit-low-stock-threshold" name="low_stock_threshold" required>
@@ -314,6 +348,8 @@
         document.getElementById('edit-category').value = product.category || 'General';
         document.getElementById('edit-branch-id').value = product.branch_id || '';
         document.getElementById('edit-sku').value = product.sku;
+        document.getElementById('edit-sold-by').value = product.sold_by || 'unit';
+        document.getElementById('edit-base-unit').value = product.base_unit || 'pcs';
         document.getElementById('edit-low-stock-threshold').value = product.low_stock_threshold;
         document.getElementById('edit-cost').value = product.cost;
         document.getElementById('edit-price').value = product.price;
