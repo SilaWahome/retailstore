@@ -1445,7 +1445,7 @@
             }
         };
 
-        function printSingleReceipt(btn) {
+        window.printSingleReceipt = function(btn) {
             if (btn && btn.dataset.printed === '1') {
                 return;
             }
@@ -1456,8 +1456,17 @@
                 btn.style.opacity = '0.65';
                 btn.style.cursor = 'not-allowed';
             }
-            window.print();
-        }
+
+            const closeAfterPrint = () => {
+                document.querySelectorAll('#receipt-modal, #offline-receipt-modal').forEach(el => el.remove());
+                window.removeEventListener('afterprint', closeAfterPrint);
+            };
+            window.addEventListener('afterprint', closeAfterPrint, { once: true });
+
+            setTimeout(() => {
+                window.print();
+            }, 50);
+        };
 
         function renderSaleReceiptModal(sale, iotecTx = null) {
             window._currentReceiptSale = sale;
