@@ -1,15 +1,19 @@
 <template>
-    <div class="min-h-screen flex bg-slate-50 text-slate-900">
+    <div
+        class="min-h-screen flex bg-slate-50 text-slate-900"
+        @touchstart.passive="onTouchStart"
+        @touchend.passive="onTouchEnd"
+    >
         <!-- Mobile Backdrop -->
         <div
             v-if="mobileOpen"
-            class="fixed inset-0 bg-slate-900/50 z-40 lg:hidden print:hidden"
+            class="fixed inset-0 bg-slate-900/50 backdrop-blur-[1px] z-40 lg:hidden print:hidden"
             @click="mobileOpen = false"
         ></div>
 
         <!-- Independent Hotel & Hospitality Sidebar -->
         <aside
-            class="print:hidden fixed lg:sticky top-0 left-0 z-50 h-screen w-64 shrink-0 bg-slate-900 text-slate-100 flex flex-col border-r border-slate-800 transition-transform duration-200 lg:translate-x-0"
+            class="print:hidden fixed lg:sticky top-0 left-0 z-50 h-screen w-72 lg:w-64 shrink-0 bg-slate-900 text-slate-100 flex flex-col border-r border-slate-800 transition-transform duration-200 lg:translate-x-0 overscroll-contain"
             :class="mobileOpen ? 'translate-x-0' : '-translate-x-full'"
         >
             <!-- Brand Header -->
@@ -37,13 +41,13 @@
             </div>
 
             <!-- Grouped Submenu Navigation -->
-            <nav class="flex-1 overflow-y-auto px-3 py-4 space-y-4">
+            <nav class="flex-1 overflow-y-auto overscroll-contain px-3 py-4 space-y-4" @click="handleNavClick">
                 <!-- Hotel & Front Desk -->
                 <div v-if="canSeeRoomsNav">
                     <button
                         type="button"
-                        @click="openGroups.hotel = !openGroups.hotel"
-                        class="w-full flex items-center justify-between px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 hover:text-slate-200"
+                        @click.stop="openGroups.hotel = !openGroups.hotel"
+                        class="w-full min-h-[40px] flex items-center justify-between px-2.5 py-2 text-[11px] font-bold uppercase tracking-wider text-slate-400 hover:text-slate-200 active:scale-[0.98] touch-manipulation"
                     >
                         <span>Hotel & Front Desk</span>
                         <span>{{ openGroups.hotel ? '▾' : '▸' }}</span>
@@ -52,7 +56,7 @@
                         <Link
                             v-if="hasFeature('room_booking')"
                             :href="appUrl('/hotel/rooms')"
-                            class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-semibold transition"
+                            class="min-h-[44px] flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold transition active:scale-[0.98] touch-manipulation"
                             :class="isActive('/hotel') ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-300 hover:bg-slate-800 hover:text-white'"
                         >
                             <span>🛏️</span>
@@ -61,7 +65,7 @@
                         <a
                             v-else
                             :href="appUrl('/support')"
-                            class="flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium text-slate-400 hover:bg-slate-800"
+                            class="min-h-[44px] flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:bg-slate-800 active:scale-[0.98] touch-manipulation"
                             title="Upgrade to Hotel Starter (UGX 170k) to unlock Room Bookings"
                         >
                             <span>🛏️ Rooms</span>
@@ -74,8 +78,8 @@
                 <div v-if="canSeeTables || canSeeKds || isAdminOrManager">
                     <button
                         type="button"
-                        @click="openGroups.restaurant = !openGroups.restaurant"
-                        class="w-full flex items-center justify-between px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 hover:text-slate-200"
+                        @click.stop="openGroups.restaurant = !openGroups.restaurant"
+                        class="w-full min-h-[40px] flex items-center justify-between px-2.5 py-2 text-[11px] font-bold uppercase tracking-wider text-slate-400 hover:text-slate-200 active:scale-[0.98] touch-manipulation"
                     >
                         <span>Restaurant & KOT</span>
                         <span>{{ openGroups.restaurant ? '▾' : '▸' }}</span>
@@ -84,7 +88,7 @@
                         <Link
                             v-if="canSeeTables"
                             :href="appUrl('/restaurant/tables')"
-                            class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-semibold transition"
+                            class="min-h-[44px] flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold transition active:scale-[0.98] touch-manipulation"
                             :class="isActive('/restaurant/tables') ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-300 hover:bg-slate-800 hover:text-white'"
                         >
                             <span>🍽️</span>
@@ -94,7 +98,7 @@
                         <Link
                             v-if="canSeeKds"
                             :href="appUrl('/restaurant/kds')"
-                            class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-semibold transition"
+                            class="min-h-[44px] flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold transition active:scale-[0.98] touch-manipulation"
                             :class="isActive('/restaurant/kds') ? 'bg-amber-600 text-white shadow-sm' : 'text-slate-300 hover:bg-slate-800 hover:text-white'"
                         >
                             <span>🍳</span>
@@ -104,7 +108,7 @@
                         <Link
                             v-if="isAdminOrManager"
                             :href="appUrl('/restaurant/menu-setup')"
-                            class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-semibold transition"
+                            class="min-h-[44px] flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold transition active:scale-[0.98] touch-manipulation"
                             :class="isActive('/restaurant/menu-setup') ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-300 hover:bg-slate-800 hover:text-white'"
                         >
                             <span>📋</span>
@@ -117,38 +121,38 @@
                 <div v-if="canViewReports || isAdminOrManager">
                     <button
                         type="button"
-                        @click="openGroups.backoffice = !openGroups.backoffice"
-                        class="w-full flex items-center justify-between px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 hover:text-slate-200"
+                        @click.stop="openGroups.backoffice = !openGroups.backoffice"
+                        class="w-full min-h-[40px] flex items-center justify-between px-2.5 py-2 text-[11px] font-bold uppercase tracking-wider text-slate-400 hover:text-slate-200 active:scale-[0.98] touch-manipulation"
                     >
                         <span>Back Office & Reports</span>
                         <span>{{ openGroups.backoffice ? '▾' : '▸' }}</span>
                     </button>
                     <div v-show="openGroups.backoffice" class="mt-1 space-y-1">
-                        <a v-if="isAdminOrManager" :href="appUrl('/sales')" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                        <a v-if="isAdminOrManager" :href="appUrl('/sales')" class="min-h-[44px] flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white active:scale-[0.98] touch-manipulation transition">
                             <span>📊</span><span>Sales Overview</span>
                         </a>
-                        <a v-if="canViewReports" :href="appUrl('/reports')" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                        <a v-if="canViewReports" :href="appUrl('/reports')" class="min-h-[44px] flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white active:scale-[0.98] touch-manipulation transition">
                             <span>📈</span><span>Reports & Exports</span>
                         </a>
-                        <a v-if="isAdminOrManager" :href="appUrl('/products')" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                        <a v-if="isAdminOrManager" :href="appUrl('/products')" class="min-h-[44px] flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white active:scale-[0.98] touch-manipulation transition">
                             <span>📦</span><span>Stock & Products</span>
                         </a>
-                        <a v-if="canViewReports" :href="appUrl('/purchase-orders')" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                        <a v-if="canViewReports" :href="appUrl('/purchase-orders')" class="min-h-[44px] flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white active:scale-[0.98] touch-manipulation transition">
                             <span>🧾</span><span>Purchase Orders</span>
                         </a>
-                        <a v-if="canViewReports" :href="appUrl('/expenses')" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                        <a v-if="canViewReports" :href="appUrl('/expenses')" class="min-h-[44px] flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white active:scale-[0.98] touch-manipulation transition">
                             <span>💸</span><span>Daily Expenses</span>
                         </a>
-                        <a v-if="isAdmin" :href="appUrl('/users')" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                        <a v-if="isAdmin" :href="appUrl('/users')" class="min-h-[44px] flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white active:scale-[0.98] touch-manipulation transition">
                             <span>👥</span><span>Staff & Users</span>
                         </a>
-                        <a v-if="isAdmin" :href="appUrl('/branches')" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                        <a v-if="isAdmin" :href="appUrl('/branches')" class="min-h-[44px] flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white active:scale-[0.98] touch-manipulation transition">
                             <span>🏢</span><span>Branches</span>
                         </a>
-                        <a v-if="isAdmin" :href="appUrl('/settings')" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                        <a v-if="isAdmin" :href="appUrl('/settings')" class="min-h-[44px] flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white active:scale-[0.98] touch-manipulation transition">
                             <span>⚙️</span><span>Settings</span>
                         </a>
-                        <a :href="appUrl('/support')" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                        <a :href="appUrl('/support')" class="min-h-[44px] flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white active:scale-[0.98] touch-manipulation transition">
                             <span>💬</span><span>Support & Billing</span>
                         </a>
                     </div>
@@ -219,6 +223,37 @@ const openGroups = reactive({
     restaurant: true,
     backoffice: false,
 });
+
+let touchStartX = 0;
+let touchStartY = 0;
+
+const onTouchStart = (e) => {
+    const t = e.changedTouches?.[0];
+    if (!t) return;
+    touchStartX = t.clientX;
+    touchStartY = t.clientY;
+};
+
+const onTouchEnd = (e) => {
+    const t = e.changedTouches?.[0];
+    if (!t) return;
+    const dx = t.clientX - touchStartX;
+    const dy = Math.abs(t.clientY - touchStartY);
+    if (dy > 50) return; // ignore vertical scroll
+    // Swipe right from left edge opens drawer
+    if (!mobileOpen.value && touchStartX < 36 && dx > 55) {
+        mobileOpen.value = true;
+    } else if (mobileOpen.value && dx < -55) {
+        // Swipe left closes drawer
+        mobileOpen.value = false;
+    }
+};
+
+const handleNavClick = (e) => {
+    if (e.target.closest('a')) {
+        mobileOpen.value = false;
+    }
+};
 
 const hasFeature = (key) => (tenant.value?.features || []).includes(key);
 

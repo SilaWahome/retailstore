@@ -143,11 +143,11 @@
                 <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 flex items-center justify-between gap-2">
                     <div class="grid grid-cols-3 gap-1 w-28">
                         <div></div>
-                        <button type="button" @click="nudgeSelected(0, -0.5)" class="h-8 rounded-lg bg-white border border-slate-300 hover:bg-slate-100 font-extrabold text-sm shadow-sm">↑</button>
+                        <button type="button" @click="nudgeSelected(0, -0.5)" class="h-10 rounded-lg bg-white border border-slate-300 hover:bg-slate-100 active:scale-95 touch-manipulation font-extrabold text-sm shadow-sm">↑</button>
                         <div></div>
-                        <button type="button" @click="nudgeSelected(-0.5, 0)" class="h-8 rounded-lg bg-white border border-slate-300 hover:bg-slate-100 font-extrabold text-sm shadow-sm">←</button>
-                        <button type="button" @click="nudgeSelected(0, 0.5)" class="h-8 rounded-lg bg-white border border-slate-300 hover:bg-slate-100 font-extrabold text-sm shadow-sm">↓</button>
-                        <button type="button" @click="nudgeSelected(0.5, 0)" class="h-8 rounded-lg bg-white border border-slate-300 hover:bg-slate-100 font-extrabold text-sm shadow-sm">→</button>
+                        <button type="button" @click="nudgeSelected(-0.5, 0)" class="h-10 rounded-lg bg-white border border-slate-300 hover:bg-slate-100 active:scale-95 touch-manipulation font-extrabold text-sm shadow-sm">←</button>
+                        <button type="button" @click="nudgeSelected(0, 0.5)" class="h-10 rounded-lg bg-white border border-slate-300 hover:bg-slate-100 active:scale-95 touch-manipulation font-extrabold text-sm shadow-sm">↓</button>
+                        <button type="button" @click="nudgeSelected(0.5, 0)" class="h-10 rounded-lg bg-white border border-slate-300 hover:bg-slate-100 active:scale-95 touch-manipulation font-extrabold text-sm shadow-sm">→</button>
                     </div>
                     <div class="flex-1 grid grid-cols-2 gap-1.5 text-[11px]">
                         <div>

@@ -253,10 +253,10 @@
                                     <div v-if="line.special_notes" class="text-xs text-rose-600 font-semibold">
                                         Note: {{ line.special_notes }}
                                     </div>
-                                    <div class="flex items-center gap-2 mt-1.5">
-                                        <button @click="decrementPending(idx)" class="w-6 h-6 rounded bg-white border text-xs font-bold">-</button>
+                                    <div class="flex items-center gap-2.5 mt-2">
+                                        <button @click="decrementPending(idx)" class="w-9 h-9 rounded-lg bg-white border border-slate-300 text-sm font-extrabold active:scale-95 touch-manipulation">-</button>
                                         <span class="text-xs font-bold">Seat {{ line.seat_number }}</span>
-                                        <button @click="line.quantity++" class="w-6 h-6 rounded bg-white border text-xs font-bold">+</button>
+                                        <button @click="line.quantity++" class="w-9 h-9 rounded-lg bg-white border border-slate-300 text-sm font-extrabold active:scale-95 touch-manipulation">+</button>
                                     </div>
                                 </div>
                                 <div class="font-bold text-slate-900 whitespace-nowrap">
