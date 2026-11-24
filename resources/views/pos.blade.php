@@ -1464,6 +1464,19 @@
             const customerName = sale.customer_name || 'Walk-in Customer';
 
             const isMobile = sale.payment_method === 'mobile' || iotecTx;
+            const totalVal = parseFloat(sale.total) || 0;
+            const paidVal = parseFloat(sale.amount_paid) || 0;
+            const isMobilePending = isMobile && (!iotecTx || iotecTx.status !== 'complete');
+            const effectivePaid = isMobilePending ? 0 : paidVal;
+            const balanceDue = Math.max(0, totalVal - effectivePaid);
+            const isUnpaid = sale.payment_status === 'unpaid' || sale.payment_method === 'debt' || balanceDue > 0.009 || isMobilePending;
+            const receiptStatusBanner = isUnpaid
+                ? `<div style="text-align: center; border: 2px solid #dc2626; color: #dc2626; background: #fef2f2; padding: 0.45rem 0.75rem; border-radius: 6px; font-weight: 900; font-size: 0.85rem; letter-spacing: 0.04em; margin-bottom: 0.85rem;">
+                    ${isMobilePending ? 'PAYMENT PENDING — NOT PAID' : (effectivePaid > 0 ? 'PARTIALLY PAID — BALANCE DUE' : 'UNPAID CREDIT / DEBT BILL')}
+                   </div>`
+                : `<div style="text-align: center; border: 1.5px solid #059669; color: #059669; background: #ecfdf5; padding: 0.35rem 0.75rem; border-radius: 6px; font-weight: 800; font-size: 0.8rem; letter-spacing: 0.04em; margin-bottom: 0.85rem;">
+                    PAID IN FULL
+                   </div>`;
             const mobileStatusHtml = isMobile ? `
                 <div class="no-print" style="background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.3); border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1rem; text-align: center;">
                     <div style="font-weight: 800; font-size: 0.88rem; color: #065f46; display: flex; align-items: center; justify-content: center; gap: 0.4rem; flex-wrap: wrap;">
@@ -1488,6 +1501,7 @@
                     <div class="glass-panel" style="width: 100%; max-width: 430px; background: #ffffff; color: #000000; padding: 2rem; border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); position: relative;" id="printable-receipt-area">
                         
                         ${mobileStatusHtml}
+                        ${receiptStatusBanner}
 
                         <!-- Receipt Header -->
                         <div style="text-align: center; border-bottom: 2px dashed #ccc; padding-bottom: 1rem; margin-bottom: 1rem;">
@@ -1531,11 +1545,16 @@
                                 <span>TOTAL DUE:</span><span>${posBaseSymbol}${parseFloat(sale.total).toFixed(2)}</span>
                             </div>
                             <div style="display: flex; justify-content: space-between; font-weight: 600; padding-top: 0.25rem;">
-                                <span>Paid (${(sale.payment_method || 'CASH').toUpperCase()}):</span><span>${posBaseSymbol}${parseFloat(sale.amount_paid).toFixed(2)}</span>
+                                <span>${isUnpaid ? 'Amount Paid' : 'Paid'} (${(sale.payment_method || 'CASH').toUpperCase()}):</span><span>${posBaseSymbol}${effectivePaid.toFixed(2)}</span>
                             </div>
-                            <div style="display: flex; justify-content: space-between; font-weight: 700; color: #059669;">
-                                <span>Change:</span><span>${posBaseSymbol}${parseFloat(sale.change_amount).toFixed(2)}</span>
-                            </div>
+                            ${isUnpaid
+                                ? `<div style="display: flex; justify-content: space-between; font-weight: 800; color: #dc2626;">
+                                    <span>BALANCE DUE:</span><span>${posBaseSymbol}${balanceDue.toFixed(2)}</span>
+                                   </div>`
+                                : `<div style="display: flex; justify-content: space-between; font-weight: 700; color: #059669;">
+                                    <span>Change:</span><span>${posBaseSymbol}${parseFloat(sale.change_amount).toFixed(2)}</span>
+                                   </div>`
+                            }
                         </div>
 
                         <!-- Receipt Footer Message -->
@@ -1627,6 +1646,14 @@
                         <div style="text-align: center; background: #fef3c7; color: #92400e; padding: 0.4rem; border-radius: 4px; font-weight: 700; font-size: 0.75rem; margin-bottom: 0.75rem; border: 1px solid #fcd34d;">
                             📡 OFFLINE RECEIPT (Queued for Database Sync)
                         </div>
+                        ${(sale.payment_method === 'debt' || sale.amount_paid < sale.total)
+                            ? `<div style="text-align: center; border: 2px solid #dc2626; color: #dc2626; background: #fef2f2; padding: 0.4rem; border-radius: 6px; font-weight: 900; font-size: 0.82rem; margin-bottom: 0.75rem;">
+                                ${sale.amount_paid > 0 ? 'PARTIALLY PAID — BALANCE DUE' : 'UNPAID CREDIT / DEBT BILL'}
+                               </div>`
+                            : `<div style="text-align: center; border: 1.5px solid #059669; color: #059669; background: #ecfdf5; padding: 0.35rem; border-radius: 6px; font-weight: 800; font-size: 0.78rem; margin-bottom: 0.75rem;">
+                                PAID IN FULL
+                               </div>`
+                        }
                         <div style="text-align: center; border-bottom: 2px dashed #ccc; padding-bottom: 1rem; margin-bottom: 1rem;">
                             <h2 style="font-size: 1.4rem; font-weight: 800; text-transform: uppercase; margin: 0; color: #000000;">{{ $tenant->name ?? 'Luxeshop Boutique' }}</h2>
                             <p style="font-size: 0.75rem; color: #555; margin: 0.2rem 0;">{{ $tenant->location ?? 'Main Store Location' }}</p>
@@ -1653,8 +1680,11 @@
                             <div style="display: flex; justify-content: space-between; font-size: 1.1rem; font-weight: 800; border-top: 1px solid #000; padding-top: 0.4rem; margin-top: 0.25rem;">
                                 <span>TOTAL DUE:</span><span>${posBaseSymbol}${sale.total.toFixed(2)}</span>
                             </div>
-                            <div style="display: flex; justify-content: space-between; font-weight: 600;"><span>Paid (${sale.payment_method.toUpperCase()}):</span><span>${posBaseSymbol}${sale.amount_paid.toFixed(2)}</span></div>
-                            <div style="display: flex; justify-content: space-between; font-weight: 600; color: #059669;"><span>Change:</span><span>${posBaseSymbol}${sale.change.toFixed(2)}</span></div>
+                            <div style="display: flex; justify-content: space-between; font-weight: 600;"><span>${(sale.payment_method === 'debt' || sale.amount_paid < sale.total) ? 'Amount Paid' : 'Paid'} (${sale.payment_method.toUpperCase()}):</span><span>${posBaseSymbol}${sale.amount_paid.toFixed(2)}</span></div>
+                            ${(sale.payment_method === 'debt' || sale.amount_paid < sale.total)
+                                ? `<div style="display: flex; justify-content: space-between; font-weight: 800; color: #dc2626;"><span>BALANCE DUE:</span><span>${posBaseSymbol}${Math.max(0, sale.total - sale.amount_paid).toFixed(2)}</span></div>`
+                                : `<div style="display: flex; justify-content: space-between; font-weight: 600; color: #059669;"><span>Change:</span><span>${posBaseSymbol}${sale.change.toFixed(2)}</span></div>`
+                            }
                         </div>
                         <div class="no-print" style="margin-top: 1.5rem; display: flex; gap: 0.5rem; justify-content: space-between; flex-wrap: wrap;">
                             <button type="button" onclick="returnSaleToCart(window._currentOfflineReceiptSale)" class="btn-secondary" style="flex: 1; padding: 0.75rem; font-size: 0.85rem; border: 1px solid #2563eb; background: #eff6ff; color: #1d4ed8; font-weight: 700; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.35rem;">
