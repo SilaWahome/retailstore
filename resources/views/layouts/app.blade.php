@@ -65,10 +65,24 @@
 
                 @if(!$isTenantSuspended)
                     @if($authTenant && $authTenant->isRestaurantOrHotel())
+                        {{-- Grouped Hospitality & Restaurant Submenus --}}
+                        @if(in_array($authUser->role, ['admin', 'manager', 'receptionist']) && $authTenant->canAccess('room_booking'))
+                        <li style="margin-top: 0.35rem;">
+                            <div style="font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); padding: 0.35rem 0.75rem;">Hotel & Front Desk</div>
+                            <a href="{{ route('hotel.rooms') }}" class="menu-link {{ request()->routeIs('hotel.*') ? 'active' : '' }}">
+                                <span class="menu-bullet"></span> Rooms & Guest Folios
+                            </a>
+                        </li>
+                        @endif
+
+                        @if(in_array($authUser->role, ['admin', 'manager', 'cashier', 'receptionist', 'kitchen']))
+                        <li style="margin-top: 0.35rem;">
+                            <div style="font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); padding: 0.35rem 0.75rem;">Restaurant & KOT</div>
+                        </li>
                         @if(in_array($authUser->role, ['admin', 'manager', 'cashier', 'receptionist']) && $authTenant->canAccess('table_management'))
                         <li>
                             <a href="{{ route('restaurant.tables') }}" class="menu-link {{ request()->routeIs('restaurant.tables') ? 'active' : '' }}">
-                                <span class="menu-bullet"></span> Floor & Restaurant POS
+                                <span class="menu-bullet"></span> Floor & Table POS
                             </a>
                         </li>
                         @endif
@@ -79,18 +93,18 @@
                             </a>
                         </li>
                         @endif
-                        @if(in_array($authUser->role, ['admin', 'manager', 'receptionist']) && $authTenant->canAccess('room_booking'))
-                        <li>
-                            <a href="{{ route('hotel.rooms') }}" class="menu-link {{ request()->routeIs('hotel.*') ? 'active' : '' }}">
-                                <span class="menu-bullet"></span> Rooms & Guest Folios
-                            </a>
-                        </li>
-                        @endif
                         @if(in_array($authUser->role, ['admin', 'manager']))
                         <li>
                             <a href="{{ route('restaurant.menu-setup') }}" class="menu-link {{ request()->routeIs('restaurant.menu-setup') ? 'active' : '' }}">
                                 <span class="menu-bullet"></span> Menu, Modifiers & BOM
                             </a>
+                        </li>
+                        @endif
+                        @endif
+
+                        @if(in_array($authUser->role, ['admin', 'manager', 'accountant']))
+                        <li style="margin-top: 0.5rem;">
+                            <div style="font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); padding: 0.35rem 0.75rem;">Back Office & Reports</div>
                         </li>
                         @endif
                     @endif
@@ -103,7 +117,7 @@
                     </li>
                     @endif
 
-                    @if(Auth::check() && Auth::user()->role === 'cashier')
+                    @if(Auth::check() && Auth::user()->role === 'cashier' && !($authTenant && $authTenant->isRestaurantOrHotel()))
                     <li>
                         <a href="{{ route('cashier.dashboard') }}" class="menu-link {{ request()->routeIs('cashier.dashboard') ? 'active' : '' }}">
                             <span class="menu-bullet"></span> Cashier Dashboard
@@ -111,7 +125,7 @@
                     </li>
                     @endif
 
-                    @if(Auth::check() && Auth::user()->role !== 'superadmin' && Auth::user()->role !== 'accountant')
+                    @if(Auth::check() && Auth::user()->role !== 'superadmin' && Auth::user()->role !== 'accountant' && !($authTenant && $authTenant->isRestaurantOrHotel()))
                     <li>
                         <a href="{{ route('pos') }}" class="menu-link {{ request()->routeIs('pos') ? 'active' : '' }}">
                             <span class="menu-bullet"></span> POS Checkout

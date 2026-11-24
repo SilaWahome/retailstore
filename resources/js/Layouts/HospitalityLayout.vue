@@ -1,115 +1,210 @@
 <template>
-    <div class="min-h-screen flex flex-col bg-slate-50 text-slate-900">
-        <!-- Top Navigation Bar (hidden on print) -->
-        <header class="print:hidden bg-white border-b border-slate-200 px-4 lg:px-6 h-16 flex items-center justify-between sticky top-0 z-30">
-            <div class="flex items-center gap-6">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-9 h-9 rounded-xl bg-emerald-600 text-white font-extrabold flex items-center justify-center text-lg shadow-sm">
-                        L
+    <div class="min-h-screen flex bg-slate-50 text-slate-900">
+        <!-- Mobile Backdrop -->
+        <div
+            v-if="mobileOpen"
+            class="fixed inset-0 bg-slate-900/50 z-40 lg:hidden print:hidden"
+            @click="mobileOpen = false"
+        ></div>
+
+        <!-- Independent Hotel & Hospitality Sidebar -->
+        <aside
+            class="print:hidden fixed lg:sticky top-0 left-0 z-50 h-screen w-64 shrink-0 bg-slate-900 text-slate-100 flex flex-col border-r border-slate-800 transition-transform duration-200 lg:translate-x-0"
+            :class="mobileOpen ? 'translate-x-0' : '-translate-x-full'"
+        >
+            <!-- Brand Header -->
+            <div class="h-16 px-4 flex items-center justify-between border-b border-slate-800">
+                <div class="flex items-center gap-2.5 min-w-0">
+                    <div class="w-9 h-9 rounded-xl bg-emerald-500 text-white font-extrabold flex items-center justify-center text-lg shadow-sm shrink-0">
+                        {{ (tenant?.name || 'H').charAt(0).toUpperCase() }}
                     </div>
-                    <div>
-                        <div class="font-bold text-sm leading-tight text-slate-900">{{ tenant?.name || 'Hospitality POS' }}</div>
-                        <div class="text-[11px] font-medium text-slate-500">
+                    <div class="min-w-0">
+                        <div class="font-bold text-sm leading-tight text-white truncate">
+                            {{ tenant?.name || 'Hospitality' }}
+                        </div>
+                        <div class="text-[11px] font-medium text-slate-400 truncate">
                             {{ tenant?.plan_name || 'Plan' }} • <span class="uppercase">{{ user?.role }}</span>
                         </div>
                     </div>
                 </div>
+                <button
+                    type="button"
+                    class="lg:hidden text-slate-400 hover:text-white p-1"
+                    @click="mobileOpen = false"
+                >
+                    ✕
+                </button>
+            </div>
 
-                <nav class="hidden md:flex items-center gap-1.5">
-                    <!-- Tables & POS (Cashier, Receptionist, Manager, Admin) -->
-                    <Link
-                        v-if="canSeeTables"
-                        :href="appUrl('/restaurant/tables')"
-                        class="px-3.5 py-2 rounded-lg text-sm font-semibold transition"
-                        :class="isActive('/restaurant/tables') ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-slate-100'"
+            <!-- Grouped Submenu Navigation -->
+            <nav class="flex-1 overflow-y-auto px-3 py-4 space-y-4">
+                <!-- Hotel & Front Desk -->
+                <div v-if="canSeeRoomsNav">
+                    <button
+                        type="button"
+                        @click="openGroups.hotel = !openGroups.hotel"
+                        class="w-full flex items-center justify-between px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 hover:text-slate-200"
                     >
-                        Floor & POS
-                    </Link>
-
-                    <!-- Kitchen Display System (Kitchen, Manager, Admin) -->
-                    <Link
-                        v-if="canSeeKds"
-                        :href="appUrl('/restaurant/kds')"
-                        class="px-3.5 py-2 rounded-lg text-sm font-semibold transition"
-                        :class="isActive('/restaurant/kds') ? 'bg-amber-50 text-amber-700' : 'text-slate-600 hover:bg-slate-100'"
-                    >
-                        Kitchen (KDS)
-                    </Link>
-
-                    <!-- Hotel Rooms (Receptionist, Manager, Admin) -->
-                    <template v-if="canSeeRoomsNav">
+                        <span>Hotel & Front Desk</span>
+                        <span>{{ openGroups.hotel ? '▾' : '▸' }}</span>
+                    </button>
+                    <div v-show="openGroups.hotel" class="mt-1 space-y-1">
                         <Link
                             v-if="hasFeature('room_booking')"
                             :href="appUrl('/hotel/rooms')"
-                            class="px-3.5 py-2 rounded-lg text-sm font-semibold transition"
-                            :class="isActive('/hotel') ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-100'"
+                            class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-semibold transition"
+                            :class="isActive('/hotel') ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-300 hover:bg-slate-800 hover:text-white'"
                         >
-                            Rooms & Folios
+                            <span>🛏️</span>
+                            <span>Rooms & Folios</span>
                         </Link>
                         <a
                             v-else
                             :href="appUrl('/support')"
-                            class="px-3.5 py-2 rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-100 flex items-center gap-1.5"
+                            class="flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium text-slate-400 hover:bg-slate-800"
                             title="Upgrade to Hotel Starter (UGX 170k) to unlock Room Bookings"
                         >
-                            <span>Rooms</span>
-                            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-700">Pro</span>
+                            <span>🛏️ Rooms</span>
+                            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300">Pro</span>
                         </a>
-                    </template>
+                    </div>
+                </div>
 
-                    <!-- Menu & BOM Setup (Admin, Manager) -->
-                    <Link
-                        v-if="isAdminOrManager"
-                        :href="appUrl('/restaurant/menu-setup')"
-                        class="px-3.5 py-2 rounded-lg text-sm font-semibold transition"
-                        :class="isActive('/restaurant/menu-setup') ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100'"
+                <!-- Restaurant & Kitchen (POS / KOT) -->
+                <div v-if="canSeeTables || canSeeKds || isAdminOrManager">
+                    <button
+                        type="button"
+                        @click="openGroups.restaurant = !openGroups.restaurant"
+                        class="w-full flex items-center justify-between px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 hover:text-slate-200"
                     >
-                        Menu & BOM
-                    </Link>
+                        <span>Restaurant & KOT</span>
+                        <span>{{ openGroups.restaurant ? '▾' : '▸' }}</span>
+                    </button>
+                    <div v-show="openGroups.restaurant" class="mt-1 space-y-1">
+                        <Link
+                            v-if="canSeeTables"
+                            :href="appUrl('/restaurant/tables')"
+                            class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-semibold transition"
+                            :class="isActive('/restaurant/tables') ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-300 hover:bg-slate-800 hover:text-white'"
+                        >
+                            <span>🍽️</span>
+                            <span>Floor & Table POS</span>
+                        </Link>
 
-                    <!-- Back to Classic Admin (Sales, Users, Reports) -->
-                    <a
-                        v-if="isAdminOrManager"
-                        :href="appUrl('/sales')"
-                        class="px-3.5 py-2 rounded-lg text-sm font-medium text-slate-500 hover:bg-slate-100"
+                        <Link
+                            v-if="canSeeKds"
+                            :href="appUrl('/restaurant/kds')"
+                            class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-semibold transition"
+                            :class="isActive('/restaurant/kds') ? 'bg-amber-600 text-white shadow-sm' : 'text-slate-300 hover:bg-slate-800 hover:text-white'"
+                        >
+                            <span>🍳</span>
+                            <span>Kitchen (KDS / KOT)</span>
+                        </Link>
+
+                        <Link
+                            v-if="isAdminOrManager"
+                            :href="appUrl('/restaurant/menu-setup')"
+                            class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-semibold transition"
+                            :class="isActive('/restaurant/menu-setup') ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-300 hover:bg-slate-800 hover:text-white'"
+                        >
+                            <span>📋</span>
+                            <span>Menu & BOM Setup</span>
+                        </Link>
+                    </div>
+                </div>
+
+                <!-- Back Office & Reports (Owner / Manager / Accountant) -->
+                <div v-if="canViewReports || isAdminOrManager">
+                    <button
+                        type="button"
+                        @click="openGroups.backoffice = !openGroups.backoffice"
+                        class="w-full flex items-center justify-between px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 hover:text-slate-200"
                     >
-                        Admin & Reports
-                    </a>
-                </nav>
-            </div>
+                        <span>Back Office & Reports</span>
+                        <span>{{ openGroups.backoffice ? '▾' : '▸' }}</span>
+                    </button>
+                    <div v-show="openGroups.backoffice" class="mt-1 space-y-1">
+                        <a v-if="isAdminOrManager" :href="appUrl('/sales')" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                            <span>📊</span><span>Sales Overview</span>
+                        </a>
+                        <a v-if="canViewReports" :href="appUrl('/reports')" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                            <span>📈</span><span>Reports & Exports</span>
+                        </a>
+                        <a v-if="isAdminOrManager" :href="appUrl('/products')" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                            <span>📦</span><span>Stock & Products</span>
+                        </a>
+                        <a v-if="canViewReports" :href="appUrl('/purchase-orders')" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                            <span>🧾</span><span>Purchase Orders</span>
+                        </a>
+                        <a v-if="canViewReports" :href="appUrl('/expenses')" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                            <span>💸</span><span>Daily Expenses</span>
+                        </a>
+                        <a v-if="isAdmin" :href="appUrl('/users')" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                            <span>👥</span><span>Staff & Users</span>
+                        </a>
+                        <a v-if="isAdmin" :href="appUrl('/branches')" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                            <span>🏢</span><span>Branches</span>
+                        </a>
+                        <a v-if="isAdmin" :href="appUrl('/settings')" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                            <span>⚙️</span><span>Settings</span>
+                        </a>
+                        <a :href="appUrl('/support')" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                            <span>💬</span><span>Support & Billing</span>
+                        </a>
+                    </div>
+                </div>
+            </nav>
 
-            <div class="flex items-center gap-3">
-                <span class="hidden sm:inline text-xs font-medium text-slate-500">
-                    {{ user?.name }}
-                </span>
+            <!-- Sidebar Footer -->
+            <div class="p-3 border-t border-slate-800 flex items-center justify-between gap-2">
+                <div class="min-w-0">
+                    <div class="text-xs font-semibold text-white truncate">{{ user?.name }}</div>
+                    <div class="text-[11px] text-slate-400 uppercase">{{ user?.role }}</div>
+                </div>
                 <a
                     :href="appUrl('/logout')"
-                    class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition"
+                    class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 transition shrink-0"
                 >
                     Sign Out
                 </a>
             </div>
-        </header>
+        </aside>
 
-        <!-- Flash Banners -->
-        <div v-if="flash?.success || flash?.error" class="print:hidden px-4 lg:px-6 pt-3">
-            <div v-if="flash.success" class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-2.5 rounded-xl text-sm font-medium">
-                {{ flash.success }}
+        <!-- Main Workspace -->
+        <div class="flex-1 min-w-0 flex flex-col">
+            <!-- Slim Mobile / Context Topbar -->
+            <header class="print:hidden bg-white border-b border-slate-200 px-4 lg:px-6 h-14 flex items-center justify-between sticky top-0 z-30 lg:hidden">
+                <button
+                    type="button"
+                    class="px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-700 text-sm font-semibold"
+                    @click="mobileOpen = true"
+                >
+                    ☰ Menu
+                </button>
+                <div class="font-bold text-sm text-slate-900 truncate">{{ tenant?.name || 'Hospitality' }}</div>
+                <a :href="appUrl('/logout')" class="text-xs font-semibold text-slate-600">Sign Out</a>
+            </header>
+
+            <!-- Flash Banners -->
+            <div v-if="flash?.success || flash?.error" class="print:hidden px-4 lg:px-6 pt-3">
+                <div v-if="flash.success" class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-2.5 rounded-xl text-sm font-medium">
+                    {{ flash.success }}
+                </div>
+                <div v-if="flash.error" class="bg-rose-50 border border-rose-200 text-rose-800 px-4 py-2.5 rounded-xl text-sm font-medium">
+                    {{ flash.error }}
+                </div>
             </div>
-            <div v-if="flash.error" class="bg-rose-50 border border-rose-200 text-rose-800 px-4 py-2.5 rounded-xl text-sm font-medium">
-                {{ flash.error }}
-            </div>
+
+            <!-- Main Content -->
+            <main class="flex-1">
+                <slot />
+            </main>
         </div>
-
-        <!-- Main Content -->
-        <main class="flex-1">
-            <slot />
-        </main>
     </div>
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, reactive, ref } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import { appUrl } from '../utils/url';
 
@@ -118,13 +213,21 @@ const user = computed(() => page.props.auth?.user);
 const tenant = computed(() => page.props.auth?.tenant);
 const flash = computed(() => page.props.flash);
 
+const mobileOpen = ref(false);
+const openGroups = reactive({
+    hotel: true,
+    restaurant: true,
+    backoffice: false,
+});
+
 const hasFeature = (key) => (tenant.value?.features || []).includes(key);
 
+const isAdmin = computed(() => ['admin', 'superadmin'].includes(user.value?.role));
 const isAdminOrManager = computed(() => ['admin', 'manager', 'superadmin'].includes(user.value?.role));
+const canViewReports = computed(() => ['admin', 'manager', 'accountant', 'superadmin'].includes(user.value?.role));
 const canSeeTables = computed(() => ['admin', 'manager', 'cashier', 'receptionist', 'superadmin'].includes(user.value?.role) && hasFeature('table_management'));
 const canSeeKds = computed(() => ['admin', 'manager', 'kitchen', 'superadmin'].includes(user.value?.role) && hasFeature('kds_display'));
 const canSeeRoomsNav = computed(() => ['admin', 'manager', 'receptionist', 'superadmin'].includes(user.value?.role));
 
 const isActive = (prefix) => page.url.includes(prefix);
 </script>
-
