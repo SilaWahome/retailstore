@@ -39,6 +39,8 @@ class HandleInertiaRequests extends Middleware
                     'room_limit' => $tenant->plan?->room_limit,
                     'features' => $tenant->plan?->features->pluck('feature_key')->values()->all() ?? [],
                 ] : null,
+                'impersonating' => (bool) $request->session()->get('impersonating_from_saas', false),
+                'impersonated_tenant_name' => $request->session()->get('impersonated_tenant_name'),
             ],
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),

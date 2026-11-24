@@ -189,6 +189,22 @@
                 <a :href="appUrl('/logout')" class="text-xs font-semibold text-slate-600">Sign Out</a>
             </header>
 
+            <!-- Impersonation Return Banner -->
+            <div
+                v-if="page.props.auth?.impersonating"
+                class="print:hidden bg-indigo-600 text-white px-4 lg:px-6 py-2.5 flex flex-wrap items-center justify-between gap-2 text-sm"
+            >
+                <span class="font-medium">
+                    Impersonating client: <strong>{{ page.props.auth?.impersonated_tenant_name || tenant?.name }}</strong>
+                </span>
+                <a
+                    :href="appUrl('/saas/stop-impersonation')"
+                    class="min-h-[36px] inline-flex items-center px-3.5 py-1.5 rounded-lg bg-white text-indigo-700 font-bold text-xs shadow-sm hover:bg-indigo-50 active:scale-[0.98] touch-manipulation transition"
+                >
+                    ← Return to Superadmin
+                </a>
+            </div>
+
             <!-- Flash Banners -->
             <div v-if="flash?.success || flash?.error" class="print:hidden px-4 lg:px-6 pt-3">
                 <div v-if="flash.success" class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-2.5 rounded-xl text-sm font-medium">

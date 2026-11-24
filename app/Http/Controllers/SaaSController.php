@@ -221,7 +221,7 @@ class SaaSController extends Controller
         $originalSuperadminId = session('original_superadmin_id');
 
         if ($originalSuperadminId) {
-            $superadmin = User::find($originalSuperadminId);
+            $superadmin = User::withoutGlobalScopes()->find($originalSuperadminId);
             if ($superadmin && $superadmin->role === 'superadmin') {
                 \Illuminate\Support\Facades\Auth::login($superadmin);
             }

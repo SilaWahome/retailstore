@@ -355,6 +355,17 @@
                 @endif
             </header>
 
+            @if(session('impersonating_from_saas'))
+                <div style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2)); border: 1px solid rgba(139, 92, 246, 0.45); color: var(--text-main); padding: 0.75rem 1.25rem; border-radius: var(--radius-sm); margin-bottom: 1.15rem; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0.75rem;">
+                    <span style="font-size: 0.88rem; font-weight: 600;">
+                        Impersonating client: <strong>{{ session('impersonated_tenant_name') }}</strong>
+                    </span>
+                    <a href="{{ route('saas.stop-impersonation') }}" class="btn-primary" style="width: auto; padding: 0.45rem 0.95rem; font-size: 0.82rem; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); border: none; color: #fff; font-weight: 700; text-decoration: none;">
+                        ← Return to Superadmin
+                    </a>
+                </div>
+            @endif
+
             @if(session('success'))
                 <div class="alert alert-success">
                     {{ session('success') }}
