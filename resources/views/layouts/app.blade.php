@@ -373,6 +373,17 @@
                 </div>
             @endif
 
+            @if(isset($authTenant) && $authTenant && in_array($authUser->role ?? '', ['admin', 'manager']) && $authTenant->isBillDueOrPromptable() && !request()->routeIs('settings.*'))
+                <div style="background: rgba(245, 158, 11, 0.14); border: 1px solid rgba(245, 158, 11, 0.4); color: #fde68a; padding: 0.85rem 1.25rem; border-radius: var(--radius-sm); margin-bottom: 1.25rem; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0.75rem;">
+                    <span style="font-size: 0.9rem; font-weight: 600;">
+                        Pending Subscription Bill: <strong>UGX {{ number_format($authTenant->pendingBillAmountUgx(), 0) }}</strong>. Please pay via Mobile Money to keep your store active.
+                    </span>
+                    <a href="{{ route('settings.index') }}" class="btn-primary" style="width: auto; padding: 0.45rem 0.95rem; font-size: 0.82rem; background: #f59e0b; border: none; color: #0f172a; font-weight: 800; text-decoration: none;">
+                        Pay Now
+                    </a>
+                </div>
+            @endif
+
             @yield('content')
         </main>
     </div>

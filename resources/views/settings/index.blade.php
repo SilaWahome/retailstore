@@ -7,6 +7,8 @@
     <h1 class="page-title">Shop Settings</h1>
 </div>
 
+@include('partials.subscription_billing_card')
+
 <div class="grid-2">
     <!-- Shop configuration panel -->
     <div class="glass-panel">

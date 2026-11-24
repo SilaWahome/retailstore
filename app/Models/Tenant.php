@@ -14,11 +14,54 @@ class Tenant extends Model
         'location',
         'business_type',
         'current_plan_id',
+        'monthly_fee_ugx',
+        'pending_bill_ugx',
         'tax_rate',
         'subscription_status',
         'subscription_package',
         'subscription_ends_at',
     ];
+
+    protected $casts = [
+        'monthly_fee_ugx' => 'decimal:2',
+        'pending_bill_ugx' => 'decimal:2',
+    ];
+
+    public function effectiveMonthlyFeeUgx(): float
+    {
+        $customFee = (float) ($this->monthly_fee_ugx ?? 0);
+        if ($customFee > 0) {
+            return $customFee;
+        }
+
+        $planPrice = (float) ($this->plan?->price_ugx ?? 0);
+        return $planPrice > 0 ? $planPrice : 20000.0;
+    }
+
+    public function pendingBillAmountUgx(): float
+    {
+        $explicitPending = (float) ($this->pending_bill_ugx ?? 0);
+        if ($explicitPending > 0) {
+            return $explicitPending;
+        }
+
+        $isExpiredOrSuspended = !in_array($this->subscription_status, ['active', 'trial'])
+            || ($this->subscription_ends_at && \Carbon\Carbon::parse($this->subscription_ends_at)->isPast());
+
+        $isDueSoon = $this->subscription_ends_at
+            && \Carbon\Carbon::parse($this->subscription_ends_at)->lte(now()->addDays(5));
+
+        if ($isExpiredOrSuspended || $isDueSoon) {
+            return $this->effectiveMonthlyFeeUgx();
+        }
+
+        return 0.0;
+    }
+
+    public function isBillDueOrPromptable(): bool
+    {
+        return $this->pendingBillAmountUgx() > 0;
+    }
 
     public function plan()
     {

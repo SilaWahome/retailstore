@@ -226,7 +226,11 @@
                                     </select>
                                     
                                     <input type="date" name="subscription_ends_at" class="form-input" value="{{ $ten->subscription_ends_at ? \Carbon\Carbon::parse($ten->subscription_ends_at)->format('Y-m-d') : '' }}" required style="padding: 0.3rem; font-size: 0.75rem; width: auto; background: var(--bg-panel); color: var(--text-main); height: auto; margin-bottom: 0;">
-                                    
+
+                                    <input type="number" name="monthly_fee_ugx" min="20000" step="1000" value="{{ (int) ($ten->monthly_fee_ugx ?: 20000) }}" title="Monthly Fee (UGX)" placeholder="Fee/mo" class="form-input" style="padding: 0.3rem; font-size: 0.75rem; width: 85px; background: var(--bg-panel); color: var(--text-main); height: auto; margin-bottom: 0;">
+
+                                    <input type="number" name="pending_bill_ugx" min="0" step="500" value="{{ (int) ($ten->pending_bill_ugx ?? 0) }}" title="Pending Bill (UGX)" placeholder="Pending" class="form-input" style="padding: 0.3rem; font-size: 0.75rem; width: 85px; background: var(--bg-panel); color: var(--text-main); height: auto; margin-bottom: 0;">
+
                                     <button type="submit" class="btn-primary" style="padding: 0.3rem 0.55rem; font-size: 0.75rem; width: auto; margin: 0; background: var(--primary);">Save</button>
                                 </form>
 

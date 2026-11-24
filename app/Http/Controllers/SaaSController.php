@@ -137,6 +137,8 @@ class SaaSController extends Controller
         $request->validate([
             'subscription_package' => 'required|string|in:basic,premium,enterprise',
             'subscription_ends_at' => 'required|date',
+            'monthly_fee_ugx' => 'nullable|numeric|min:20000',
+            'pending_bill_ugx' => 'nullable|numeric|min:0',
         ]);
 
         $endsAt = Carbon::parse($request->subscription_ends_at);
@@ -146,9 +148,11 @@ class SaaSController extends Controller
             'subscription_package' => $request->subscription_package,
             'subscription_ends_at' => $request->subscription_ends_at,
             'subscription_status' => $status,
+            'monthly_fee_ugx' => $request->filled('monthly_fee_ugx') ? (float) $request->monthly_fee_ugx : ($tenant->monthly_fee_ugx ?: 20000),
+            'pending_bill_ugx' => $request->filled('pending_bill_ugx') ? (float) $request->pending_bill_ugx : (float) $tenant->pending_bill_ugx,
         ]);
 
-        return redirect()->route('saas')->with('success', "Subscription package updated for {$tenant->name}. Status: " . strtoupper($status));
+        return redirect()->route('saas')->with('success', "Subscription & billing updated for {$tenant->name}. Status: " . strtoupper($status));
     }
 
     /**

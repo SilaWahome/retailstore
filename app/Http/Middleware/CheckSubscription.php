@@ -38,8 +38,8 @@ class CheckSubscription
                 
                 // Block access if not active/trial
                 if (! in_array($tenant->subscription_status, ['active', 'trial'])) {
-                    if (! $request->routeIs('support.*') && ! $request->routeIs('logout')) {
-                        return redirect()->route('support.index')->with('error', 'Your store subscription is currently suspended or expired. Please submit a support ticket below to contact the platform billing team.');
+                    if (! $request->routeIs('support.*') && ! $request->routeIs('billing.*') && ! $request->routeIs('logout')) {
+                        return redirect()->route('support.index')->with('error', 'Your store subscription is currently suspended or expired. Pay your pending bill below or submit a support ticket to restore access.');
                     }
                 }
             }

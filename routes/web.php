@@ -17,6 +17,7 @@ use App\Http\Controllers\BranchController;
 use App\Http\Controllers\DisbursementController;
 use App\Http\Controllers\RestaurantController;
 use App\Http\Controllers\HotelController;
+use App\Http\Controllers\SubscriptionBillingController;
 use App\Http\Middleware\CheckSubscription;
 
 // Redirect homepage based on role & business type
@@ -195,9 +196,11 @@ Route::middleware(['auth', CheckSubscription::class])->group(function () {
 
     Route::get('/saas/stop-impersonation', [SaaSController::class, 'stopImpersonation'])->name('saas.stop-impersonation');
 
-    // Support Tickets
+    // Support Tickets & On-Site Subscription Self-Payment
     Route::get('/support', [SupportTicketController::class, 'index'])->name('support.index');
     Route::post('/support', [SupportTicketController::class, 'store'])->name('support.store');
+    Route::post('/billing/pay', [SubscriptionBillingController::class, 'initiatePayment'])->name('billing.pay');
+    Route::get('/billing/status/{transaction}', [SubscriptionBillingController::class, 'checkStatus'])->name('billing.status');
 
     // Restaurant Module (Feature-gated + Role-gated)
     Route::prefix('restaurant')->name('restaurant.')->middleware('feature:table_management')->group(function () {

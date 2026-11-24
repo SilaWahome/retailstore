@@ -58,6 +58,8 @@
     <h1 class="page-title">Support & Billing Help</h1>
 </div>
 
+@include('partials.subscription_billing_card')
+
 <div class="grid-2" style="align-items: start; gap: 2rem; margin-bottom: 3rem;">
     <!-- Submit Ticket Form -->
     <div class="glass-panel panel-body">
