@@ -1449,6 +1449,15 @@
             if (btn && btn.dataset.printed === '1') {
                 return;
             }
+
+            const modal = btn ? btn.closest('#receipt-modal, #offline-receipt-modal') : document.querySelector('#receipt-modal, #offline-receipt-modal');
+            const receiptEl = modal ? modal.querySelector('#printable-receipt-area, #printable-offline-receipt-area') : document.querySelector('#printable-receipt-area, #printable-offline-receipt-area');
+
+            if (!receiptEl) {
+                window.print();
+                return;
+            }
+
             if (btn) {
                 btn.dataset.printed = '1';
                 btn.disabled = true;
@@ -1457,15 +1466,51 @@
                 btn.style.cursor = 'not-allowed';
             }
 
-            const closeAfterPrint = () => {
-                document.querySelectorAll('#receipt-modal, #offline-receipt-modal').forEach(el => el.remove());
-                window.removeEventListener('afterprint', closeAfterPrint);
-            };
-            window.addEventListener('afterprint', closeAfterPrint, { once: true });
+            const clone = receiptEl.cloneNode(true);
+            clone.querySelectorAll('.no-print').forEach(el => el.remove());
+            clone.style.position = 'static';
+            clone.style.width = '54mm';
+            clone.style.maxWidth = '54mm';
+            clone.style.margin = '0 auto';
+            clone.style.padding = '2mm';
+            clone.style.boxShadow = 'none';
+            clone.style.borderRadius = '0';
 
+            const oldFrame = document.getElementById('pos-print-frame');
+            if (oldFrame) oldFrame.remove();
+
+            const iframe = document.createElement('iframe');
+            iframe.id = 'pos-print-frame';
+            iframe.style.position = 'fixed';
+            iframe.style.right = '0';
+            iframe.style.bottom = '0';
+            iframe.style.width = '0';
+            iframe.style.height = '0';
+            iframe.style.border = '0';
+            document.body.appendChild(iframe);
+
+            const doc = iframe.contentWindow.document;
+            doc.open();
+            doc.write(`<!DOCTYPE html><html><head><title>Receipt</title><style>
+                @page { size: 58mm auto; margin: 0; }
+                html, body { width: 58mm; margin: 0; padding: 0; background: #fff; color: #000; font-family: 'Courier New', Courier, monospace, sans-serif; font-size: 8pt; line-height: 1.25; }
+                h2 { font-size: 10.5pt !important; margin: 0 0 2px 0 !important; }
+                p { font-size: 7.5pt !important; margin: 1px 0 !important; }
+                table { width: 100% !important; font-size: 7.5pt !important; border-collapse: collapse !important; }
+                th, td { padding: 2px 0 !important; word-break: break-word !important; }
+            </style></head><body>${clone.outerHTML}</body></html>`);
+            doc.close();
+
+            const cleanup = () => {
+                document.querySelectorAll('#receipt-modal, #offline-receipt-modal').forEach(el => el.remove());
+                setTimeout(() => iframe.remove(), 300);
+            };
+
+            iframe.contentWindow.addEventListener('afterprint', cleanup, { once: true });
             setTimeout(() => {
-                window.print();
-            }, 50);
+                iframe.contentWindow.focus();
+                iframe.contentWindow.print();
+            }, 80);
         };
 
         function renderSaleReceiptModal(sale, iotecTx = null) {
