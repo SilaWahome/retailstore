@@ -1539,10 +1539,10 @@
             const isUnpaid = sale.payment_status === 'unpaid' || sale.payment_method === 'debt' || balanceDue > 0.009 || isMobilePending;
             const receiptStatusBanner = isUnpaid
                 ? `<div style="text-align: center; border: 2px solid #dc2626; color: #dc2626; background: #fef2f2; padding: 0.45rem 0.75rem; border-radius: 6px; font-weight: 900; font-size: 0.85rem; letter-spacing: 0.04em; margin-bottom: 0.85rem;">
-                    ${isMobilePending ? 'PAYMENT PENDING — NOT PAID' : (effectivePaid > 0 ? 'PARTIALLY PAID — BALANCE DUE' : 'UNPAID CREDIT / DEBT BILL')}
+                    ${isMobilePending ? 'PAYMENT PENDING — NOT PAID' : (effectivePaid > 0 ? 'PARTIALLY PAID — BALANCE DUE' : 'PENDING')}
                    </div>`
-                : `<div style="text-align: center; border: 1.5px solid #059669; color: #059669; background: #ecfdf5; padding: 0.35rem 0.75rem; border-radius: 6px; font-weight: 800; font-size: 0.8rem; letter-spacing: 0.04em; margin-bottom: 0.85rem;">
-                    PAID IN FULL
+                : `<div style="text-align: center; border: 1.5px solid #d97706; color: #b45309; background: #fffbeb; padding: 0.35rem 0.75rem; border-radius: 6px; font-weight: 800; font-size: 0.8rem; letter-spacing: 0.04em; margin-bottom: 0.85rem;">
+                    PENDING
                    </div>`;
             const mobileStatusHtml = isMobile ? `
                 <div class="no-print" style="background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.3); border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1rem; text-align: center;">
@@ -1612,7 +1612,7 @@
                                 <span>TOTAL DUE:</span><span>${posBaseSymbol}${parseFloat(sale.total).toFixed(2)}</span>
                             </div>
                             <div style="display: flex; justify-content: space-between; font-weight: 600; padding-top: 0.25rem;">
-                                <span>${isUnpaid ? 'Amount Paid' : 'Paid'} (${(sale.payment_method || 'CASH').toUpperCase()}):</span><span>${posBaseSymbol}${effectivePaid.toFixed(2)}</span>
+                                <span>Pending (${(sale.payment_method || 'CASH').toUpperCase()}):</span><span>${posBaseSymbol}${effectivePaid.toFixed(2)}</span>
                             </div>
                             ${isUnpaid
                                 ? `<div style="display: flex; justify-content: space-between; font-weight: 800; color: #dc2626;">
@@ -1714,10 +1714,10 @@
                         </div>
                         ${(sale.payment_method === 'debt' || sale.amount_paid < sale.total)
                             ? `<div style="text-align: center; border: 2px solid #dc2626; color: #dc2626; background: #fef2f2; padding: 0.4rem; border-radius: 6px; font-weight: 900; font-size: 0.82rem; margin-bottom: 0.75rem;">
-                                ${sale.amount_paid > 0 ? 'PARTIALLY PAID — BALANCE DUE' : 'UNPAID CREDIT / DEBT BILL'}
+                                ${sale.amount_paid > 0 ? 'PARTIALLY PAID — BALANCE DUE' : 'PENDING'}
                                </div>`
-                            : `<div style="text-align: center; border: 1.5px solid #059669; color: #059669; background: #ecfdf5; padding: 0.35rem; border-radius: 6px; font-weight: 800; font-size: 0.78rem; margin-bottom: 0.75rem;">
-                                PAID IN FULL
+                            : `<div style="text-align: center; border: 1.5px solid #d97706; color: #b45309; background: #fffbeb; padding: 0.35rem; border-radius: 6px; font-weight: 800; font-size: 0.78rem; margin-bottom: 0.75rem;">
+                                PENDING
                                </div>`
                         }
                         <div style="text-align: center; border-bottom: 2px dashed #ccc; padding-bottom: 1rem; margin-bottom: 1rem;">
@@ -1746,7 +1746,7 @@
                             <div style="display: flex; justify-content: space-between; font-size: 1.1rem; font-weight: 800; border-top: 1px solid #000; padding-top: 0.4rem; margin-top: 0.25rem;">
                                 <span>TOTAL DUE:</span><span>${posBaseSymbol}${sale.total.toFixed(2)}</span>
                             </div>
-                            <div style="display: flex; justify-content: space-between; font-weight: 600;"><span>${(sale.payment_method === 'debt' || sale.amount_paid < sale.total) ? 'Amount Paid' : 'Paid'} (${sale.payment_method.toUpperCase()}):</span><span>${posBaseSymbol}${sale.amount_paid.toFixed(2)}</span></div>
+                            <div style="display: flex; justify-content: space-between; font-weight: 600;"><span>Pending (${sale.payment_method.toUpperCase()}):</span><span>${posBaseSymbol}${sale.amount_paid.toFixed(2)}</span></div>
                             ${(sale.payment_method === 'debt' || sale.amount_paid < sale.total)
                                 ? `<div style="display: flex; justify-content: space-between; font-weight: 800; color: #dc2626;"><span>BALANCE DUE:</span><span>${posBaseSymbol}${Math.max(0, sale.total - sale.amount_paid).toFixed(2)}</span></div>`
                                 : `<div style="display: flex; justify-content: space-between; font-weight: 600; color: #059669;"><span>Change:</span><span>${posBaseSymbol}${sale.change.toFixed(2)}</span></div>`
@@ -1913,7 +1913,7 @@
                 <span>{{ $baseCurrency->symbol }}{{ number_format($rec->total, 2) }}</span>
             </div>
             <div style="display: flex; justify-content: space-between; font-weight: 600; padding-top: 0.25rem;">
-                <span>Paid ({{ strtoupper($rec->payment_method) }}):</span>
+                <span>Pending ({{ strtoupper($rec->payment_method) }}):</span>
                 <span>{{ $baseCurrency->symbol }}{{ number_format($rec->amount_paid, 2) }}</span>
             </div>
             <div style="display: flex; justify-content: space-between; font-weight: 600; color: #059669;">
