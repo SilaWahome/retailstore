@@ -1445,10 +1445,23 @@
             }
         };
 
+        function printSingleReceipt(btn) {
+            if (btn && btn.dataset.printed === '1') {
+                return;
+            }
+            if (btn) {
+                btn.dataset.printed = '1';
+                btn.disabled = true;
+                btn.textContent = '✓ Receipt Printed';
+                btn.style.opacity = '0.65';
+                btn.style.cursor = 'not-allowed';
+            }
+            window.print();
+        }
+
         function renderSaleReceiptModal(sale, iotecTx = null) {
             window._currentReceiptSale = sale;
-            let existing = document.getElementById('receipt-modal');
-            if (existing) existing.remove();
+            document.querySelectorAll('#receipt-modal, #offline-receipt-modal').forEach(el => el.remove());
 
             const itemsRows = (sale.items || []).map(item => `
                 <tr style="border-bottom: 1px solid #eee;">
@@ -1568,7 +1581,7 @@
                             <button type="button" onclick="returnSaleToCart(window._currentReceiptSale)" class="btn-secondary" style="flex: 1; padding: 0.75rem; font-size: 0.85rem; border: 1px solid #2563eb; background: #eff6ff; color: #1d4ed8; font-weight: 700; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.35rem;">
                                 🛒 Return to Cart
                             </button>
-                            <button type="button" onclick="window.print()" class="btn-primary" style="flex: 1; padding: 0.75rem; font-size: 0.85rem; background: #000000; color: #ffffff; border: none; font-weight: 700; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.35rem;">
+                            <button type="button" onclick="printSingleReceipt(this)" class="btn-primary" style="flex: 1; padding: 0.75rem; font-size: 0.85rem; background: #000000; color: #ffffff; border: none; font-weight: 700; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.35rem;">
                                 🖨️ Print Receipt
                             </button>
                             <button type="button" onclick="document.getElementById('receipt-modal').remove()" class="btn-secondary" style="padding: 0.75rem 1rem; font-size: 0.85rem; border: 1px solid #ccc; background: #f3f4f6; color: #333333; font-weight: 600; border-radius: 6px; cursor: pointer;">
@@ -1628,8 +1641,7 @@
 
         function renderOfflineReceiptModal(sale) {
             window._currentOfflineReceiptSale = sale;
-            let modal = document.getElementById('offline-receipt-modal');
-            if (modal) modal.remove();
+            document.querySelectorAll('#receipt-modal, #offline-receipt-modal').forEach(el => el.remove());
 
             const itemsRows = sale.cartItems.map(item => `
                 <tr style="border-bottom: 1px solid #eee;">
@@ -1690,7 +1702,7 @@
                             <button type="button" onclick="returnSaleToCart(window._currentOfflineReceiptSale)" class="btn-secondary" style="flex: 1; padding: 0.75rem; font-size: 0.85rem; border: 1px solid #2563eb; background: #eff6ff; color: #1d4ed8; font-weight: 700; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.35rem;">
                                 🛒 Return to Cart
                             </button>
-                            <button type="button" onclick="window.print()" class="btn-primary" style="flex: 1; padding: 0.75rem; font-size: 0.85rem; background: #000000; color: #ffffff; border: none; font-weight: 700; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.35rem;">
+                            <button type="button" onclick="printSingleReceipt(this)" class="btn-primary" style="flex: 1; padding: 0.75rem; font-size: 0.85rem; background: #000000; color: #ffffff; border: none; font-weight: 700; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.35rem;">
                                 🖨️ Print Receipt
                             </button>
                             <button type="button" onclick="document.getElementById('offline-receipt-modal').remove()" class="btn-secondary" style="padding: 0.75rem 1rem; font-size: 0.85rem; border: 1px solid #ccc; background: #f3f4f6; color: #333333; font-weight: 600; border-radius: 6px; cursor: pointer;">
@@ -1867,7 +1879,7 @@
             <button type="button" onclick="returnSaleToCart(window._currentSessionReceiptSale)" class="btn-secondary" style="flex: 1; padding: 0.75rem; font-size: 0.85rem; border: 1px solid #2563eb; background: #eff6ff; color: #1d4ed8; font-weight: 700; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.35rem;">
                 🛒 Return to Cart
             </button>
-            <button type="button" onclick="window.print()" class="btn-primary" style="flex: 1; padding: 0.75rem; font-size: 0.85rem; background: #000000; color: #ffffff; border: none; font-weight: 700; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.35rem;">
+            <button type="button" onclick="printSingleReceipt(this)" class="btn-primary" style="flex: 1; padding: 0.75rem; font-size: 0.85rem; background: #000000; color: #ffffff; border: none; font-weight: 700; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.35rem;">
                 🖨️ Print Receipt
             </button>
             <button type="button" onclick="document.getElementById('receipt-modal').remove()" class="btn-secondary" style="padding: 0.75rem 1rem; font-size: 0.85rem; border: 1px solid #ccc; background: #f3f4f6; color: #333333; font-weight: 600; border-radius: 6px; cursor: pointer;">
@@ -1886,6 +1898,8 @@
         }
         html, body {
             width: 58mm !important;
+            height: auto !important;
+            min-height: 0 !important;
             margin: 0 !important;
             padding: 0 !important;
             background: #ffffff !important;
@@ -1893,6 +1907,9 @@
             font-family: 'Courier New', Courier, monospace, sans-serif !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
+        }
+        .sidebar, .top-header, .alert {
+            display: none !important;
         }
         body * {
             visibility: hidden !important;
