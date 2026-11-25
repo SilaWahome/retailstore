@@ -288,14 +288,22 @@
                         </div>
                     </div>
 
-                    <button
-                        v-if="pendingCart.length > 0"
-                        @click="fireToKitchen"
-                        :disabled="isSubmitting"
-                        class="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-base shadow-sm disabled:opacity-50"
-                    >
-                        {{ isSubmitting ? 'Sending...' : 'SEND TO KITCHEN (KOT)' }}
-                    </button>
+                    <div v-if="pendingCart.length > 0" class="grid grid-cols-1 gap-2">
+                        <button
+                            @click="fireOrder(false)"
+                            :disabled="isSubmitting"
+                            class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] touch-manipulation text-white font-extrabold text-sm shadow-sm disabled:opacity-50"
+                        >
+                            {{ isSubmitting ? 'Sending...' : 'SEND TO KITCHEN (KOT)' }}
+                        </button>
+                        <button
+                            @click="fireOrder(true)"
+                            :disabled="isSubmitting"
+                            class="w-full py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 active:scale-[0.99] touch-manipulation text-white font-extrabold text-xs shadow-sm disabled:opacity-50"
+                        >
+                            {{ isSubmitting ? 'Adding...' : 'ADD DIRECT / NO KITCHEN (DRINKS & BAR)' }}
+                        </button>
+                    </div>
 
                     <div v-if="activeOrder" class="grid grid-cols-3 gap-2">
                         <button
@@ -677,18 +685,19 @@ const combinedSubtotal = computed(() => Number(activeOrder.value?.subtotal_ugx |
 const combinedTax = computed(() => Math.round(combinedSubtotal.value * (taxRate.value / 100)));
 const combinedTotal = computed(() => combinedSubtotal.value + combinedTax.value);
 
-const fireToKitchen = async () => {
+const fireOrder = async (directOnly = false) => {
     isSubmitting.value = true;
     try {
         const { data } = await axios.post('/restaurant/orders/fire', {
             table_id: activeTable.value.id,
             order_id: activeOrder.value?.id || null,
+            direct_only: directOnly,
             items: pendingCart.value,
         });
         activeOrder.value = data.order;
         pendingCart.value = [];
 
-        if (data.print_results?.length && !data.print_results[0].sent && data.print_results[0].slip) {
+        if (!directOnly && data.print_results?.length && !data.print_results[0].sent && data.print_results[0].slip) {
             printSlipText.value = data.print_results.map(r => r.slip).join('\n\n');
             setTimeout(() => window.print(), 150);
         }

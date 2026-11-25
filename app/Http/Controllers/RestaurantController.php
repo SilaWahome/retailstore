@@ -298,6 +298,7 @@ class RestaurantController extends Controller
             'table_id' => 'nullable|exists:dining_tables,id',
             'order_id' => 'nullable|exists:restaurant_orders,id',
             'guest_count' => 'nullable|integer|min:1|max:50',
+            'direct_only' => 'nullable|boolean',
             'items' => 'required|array|min:1',
             'items.*.menu_item_id' => 'required|exists:menu_items,id',
             'items.*.quantity' => 'required|integer|min:1|max:100',
@@ -334,10 +335,13 @@ class RestaurantController extends Controller
 
             $itemsByStation = [];
 
+            $directOnly = $request->boolean('direct_only');
+
             foreach ($request->items as $line) {
                 $menuItem = MenuItem::with('recipes.ingredient')->findOrFail($line['menu_item_id']);
                 $modifiers = $line['modifiers'] ?? [];
                 $modifiersTotal = collect($modifiers)->sum(fn ($m) => (float) ($m['extra_price'] ?? 0));
+                $skipKitchen = $directOnly || $menuItem->station === 'bar';
 
                 $orderItem = RestaurantOrderItem::create([
                     'order_id' => $order->id,
@@ -349,15 +353,17 @@ class RestaurantController extends Controller
                     'seat_number' => $line['seat_number'] ?? 1,
                     'modifiers' => $modifiers,
                     'special_notes' => $line['special_notes'] ?? null,
-                    'status' => 'fired',
+                    'status' => $skipKitchen ? 'served' : 'fired',
                 ]);
 
-                $station = $multiStation ? $menuItem->station : 'kitchen';
-                $itemsByStation[$station][] = [
-                    'order_item' => $orderItem,
-                    'menu_item' => $menuItem,
-                    'modifiers_summary' => collect($modifiers)->pluck('name')->implode(', '),
-                ];
+                if (!$skipKitchen) {
+                    $station = $multiStation ? $menuItem->station : 'kitchen';
+                    $itemsByStation[$station][] = [
+                        'order_item' => $orderItem,
+                        'menu_item' => $menuItem,
+                        'modifiers_summary' => collect($modifiers)->pluck('name')->implode(', '),
+                    ];
+                }
 
                 // Deduct BOM recipe ingredients if enabled on plan
                 if ($useBom && $menuItem->recipes->isNotEmpty()) {
