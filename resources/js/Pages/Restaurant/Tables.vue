@@ -151,7 +151,7 @@
                     <input
                         v-model="searchQuery"
                         type="text"
-                        placeholder="Search dish or drink..."
+                        placeholder="Search product, dish, or drink..."
                         class="w-full max-w-md px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                     />
                     <div class="text-xs font-semibold text-slate-500 hidden sm:block">

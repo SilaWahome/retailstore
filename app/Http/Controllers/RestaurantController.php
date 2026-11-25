@@ -14,6 +14,7 @@ use App\Models\MenuItem;
 use App\Models\MenuModifier;
 use App\Models\MenuModifierGroup;
 use App\Models\MenuRecipe;
+use App\Models\Product;
 use App\Models\RestaurantOrder;
 use App\Models\RestaurantOrderItem;
 use App\Models\StationPrinter;
@@ -34,6 +35,35 @@ class RestaurantController extends Controller
             ->get();
 
         $categories = Category::orderBy('name')->get();
+
+        // Ensure existing active retail products are available as searchable POS menu items
+        if ($tenant) {
+            $existingNames = MenuItem::where('tenant_id', $tenant->id)
+                ->pluck('name')
+                ->map(fn ($n) => mb_strtolower(trim($n)))
+                ->all();
+
+            $categoriesByName = $categories->pluck('id', 'name');
+            $retailProducts = Product::where('tenant_id', $tenant->id)
+                ->where('is_active', true)
+                ->get();
+
+            foreach ($retailProducts as $prod) {
+                $key = mb_strtolower(trim($prod->name));
+                if (!in_array($key, $existingNames, true)) {
+                    MenuItem::create([
+                        'tenant_id' => $tenant->id,
+                        'category_id' => $categoriesByName[$prod->category] ?? null,
+                        'name' => $prod->name,
+                        'description' => $prod->sku ? 'SKU: ' . $prod->sku : null,
+                        'price_ugx' => $prod->price,
+                        'station' => 'kitchen',
+                        'is_available' => true,
+                    ]);
+                    $existingNames[] = $key;
+                }
+            }
+        }
 
         $menuItems = MenuItem::with(['category', 'modifierGroups.modifiers'])
             ->where('is_available', true)
