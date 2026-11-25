@@ -32,6 +32,8 @@ class HandleInertiaRequests extends Middleware
                     'id' => $tenant->id,
                     'name' => $tenant->name,
                     'business_name' => $tenant->business_name,
+                    'location' => $tenant->location,
+                    'phone' => $tenant->phone,
                     'business_type' => $tenant->business_type,
                     'tax_rate' => (float) ($tenant->tax_rate ?? 0),
                     'plan_name' => $tenant->plan?->name,

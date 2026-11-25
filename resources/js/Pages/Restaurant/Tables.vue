@@ -711,18 +711,89 @@ const printCustomerBill = async () => {
     if (!activeOrder.value) return;
     const { data } = await axios.post(`/restaurant/orders/${activeOrder.value.id}/print-bill`);
     activeOrder.value = data.order;
-    const lines = [
-        `BILL - TABLE ${activeTable.value.table_number}`,
-        `Order #${activeOrder.value.id}`,
-        '--------------------------------',
-        ...activeOrder.value.items.map(i => `${i.quantity}x ${i.item_name}  ${formatUgx((Number(i.unit_price) + Number(i.modifiers_total)) * i.quantity)}`),
-        '--------------------------------',
-        `Subtotal: ${formatUgx(activeOrder.value.subtotal_ugx)}`,
-        `Tax:      ${formatUgx(activeOrder.value.tax_ugx)}`,
-        `TOTAL:    ${formatUgx(activeOrder.value.total_amount_ugx)}`,
-    ];
-    printSlipText.value = lines.join('\n');
-    setTimeout(() => window.print(), 150);
+
+    const t = page.props.auth?.tenant || {};
+    const u = page.props.auth?.user || {};
+    const order = activeOrder.value;
+    const dateStr = new Date().toLocaleString();
+
+    const itemsRows = (order.items || []).map(i => {
+        const unit = Number(i.unit_price) + Number(i.modifiers_total || 0);
+        const lineTotal = unit * Number(i.quantity);
+        return `<tr style="border-bottom:1px solid #eee;">
+            <td style="padding:3px 0;"><strong>${i.item_name}</strong></td>
+            <td style="text-align:center;padding:3px 0;">${i.quantity}</td>
+            <td style="text-align:right;padding:3px 0;">${formatUgx(unit)}</td>
+            <td style="text-align:right;padding:3px 0;">${formatUgx(lineTotal)}</td>
+        </tr>`;
+    }).join('');
+
+    const receiptHtml = `<!DOCTYPE html><html><head><title>Receipt #${order.id}</title><style>
+        @page { size: 58mm auto; margin: 0; }
+        html, body { width: 58mm; margin: 0; padding: 0; background: #fff; color: #000; font-family: 'Courier New', Courier, monospace, sans-serif; font-size: 8pt; line-height: 1.25; }
+        .wrap { width: 54mm; margin: 0 auto; padding: 2mm; }
+        h2 { font-size: 10.5pt; font-weight: 800; text-transform: uppercase; margin: 0; text-align: center; }
+        p { font-size: 7.5pt; margin: 1px 0; text-align: center; color: #333; }
+        table { width: 100%; border-collapse: collapse; font-size: 7.5pt; margin: 6px 0; }
+        th, td { padding: 2px 0; word-break: break-word; }
+    </style></head><body><div class="wrap">
+        <div style="text-align:center;border:1.5px solid #d97706;color:#b45309;background:#fffbeb;padding:4px;border-radius:4px;font-weight:800;font-size:8pt;margin-bottom:6px;">
+            ${order.status === 'paid' ? 'PAID' : 'PENDING'}
+        </div>
+        <div style="border-bottom:1px dashed #999;padding-bottom:6px;margin-bottom:6px;">
+            <h2>${t.name || 'Luxeshop'}</h2>
+            ${t.business_name ? `<p>${t.business_name}</p>` : ''}
+            <p>${t.location || 'Main Store Location'}</p>
+            <p>Tel: ${t.phone || ''}</p>
+        </div>
+        <div style="font-size:7.5pt;margin-bottom:6px;">
+            <div style="display:flex;justify-content:space-between;"><span>Receipt No:</span><strong>#${order.id}</strong></div>
+            <div style="display:flex;justify-content:space-between;"><span>Table:</span><strong>T-${activeTable.value.table_number}</strong></div>
+            <div style="display:flex;justify-content:space-between;"><span>Date & Time:</span><span>${dateStr}</span></div>
+            <div style="display:flex;justify-content:space-between;"><span>Server:</span><span>${u.name || 'Staff'}</span></div>
+        </div>
+        <table>
+            <thead>
+                <tr style="border-top:1px solid #000;border-bottom:1px solid #000;">
+                    <th style="text-align:left;">Item</th>
+                    <th style="text-align:center;">Qty</th>
+                    <th style="text-align:right;">Price</th>
+                    <th style="text-align:right;">Total</th>
+                </tr>
+            </thead>
+            <tbody>${itemsRows}</tbody>
+        </table>
+        <div style="border-top:1px dashed #999;padding-top:5px;font-size:8pt;">
+            <div style="display:flex;justify-content:space-between;"><span>Subtotal:</span><span>${formatUgx(order.subtotal_ugx)}</span></div>
+            ${Number(order.tax_ugx) > 0 ? `<div style="display:flex;justify-content:space-between;"><span>Tax:</span><span>${formatUgx(order.tax_ugx)}</span></div>` : ''}
+            <div style="display:flex;justify-content:space-between;font-weight:800;font-size:9.5pt;border-top:1px solid #000;padding-top:3px;margin-top:3px;">
+                <span>TOTAL DUE:</span><span>${formatUgx(order.total_amount_ugx)}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-weight:600;padding-top:2px;">
+                <span>${order.status === 'paid' ? 'Paid' : 'Pending'}:</span><span>${formatUgx(order.total_amount_ugx)}</span>
+            </div>
+        </div>
+        <div style="text-align:center;margin-top:8px;border-top:1px solid #ccc;padding-top:5px;font-size:7pt;color:#555;">
+            <p style="font-weight:600;">Thank you for your business!</p>
+            <p>Please keep this receipt for records.</p>
+        </div>
+    </div></body></html>`;
+
+    const oldFrame = document.getElementById('pos-print-frame');
+    if (oldFrame) oldFrame.remove();
+    const iframe = document.createElement('iframe');
+    iframe.id = 'pos-print-frame';
+    iframe.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;';
+    document.body.appendChild(iframe);
+    iframe.contentWindow.document.open();
+    iframe.contentWindow.document.write(receiptHtml);
+    iframe.contentWindow.document.close();
+    iframe.contentWindow.addEventListener('afterprint', () => setTimeout(() => iframe.remove(), 300), { once: true });
+    setTimeout(() => {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+    }, 80);
+
     router.reload({ only: ['areas'] });
 };
 
