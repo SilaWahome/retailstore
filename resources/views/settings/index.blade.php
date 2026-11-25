@@ -9,6 +9,42 @@
 
 @include('partials.subscription_billing_card')
 
+@if(isset($plans) && $plans->count() > 0)
+<div class="glass-panel" style="margin-bottom: 1.5rem;">
+    <div class="panel-body" style="border-bottom: 1px solid var(--card-border); display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0.75rem;">
+        <div>
+            <h2 style="font-size: 1.15rem; font-weight: 800; margin: 0;">Business Mode & Setup Switcher</h2>
+            <p style="color: var(--text-muted); font-size: 0.82rem; margin-top: 0.25rem;">
+                Easily switch between Basic Retail POS, Restaurant POS, and Simple Hotel Setup.
+            </p>
+        </div>
+        <span class="badge badge-received" style="text-transform: uppercase;">
+            Current: {{ $tenant->plan->name ?? ucfirst($tenant->business_type ?? 'retail') }}
+        </span>
+    </div>
+    <div class="panel-body" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
+        @foreach($plans as $plan)
+            @php
+                $isCurrent = (int) $tenant->current_plan_id === (int) $plan->id;
+                $label = $plan->slug === 'hotel-starter' ? 'Simple Hotel Setup (' . $plan->name . ')' : $plan->name;
+            @endphp
+            <form action="{{ route('settings.business-mode') }}" method="POST" style="margin: 0; border: 1px solid {{ $isCurrent ? 'var(--primary)' : 'var(--card-border)' }}; background: {{ $isCurrent ? 'rgba(139, 92, 246, 0.08)' : 'rgba(255,255,255,0.02)' }}; border-radius: var(--radius-sm); padding: 1rem; display: flex; flex-direction: column; justify-content: space-between; gap: 0.75rem;">
+                @csrf
+                <input type="hidden" name="plan_id" value="{{ $plan->id }}">
+                <div>
+                    <div style="font-size: 0.72rem; font-weight: 700; text-transform: uppercase; color: var(--primary);">{{ $plan->business_type }}</div>
+                    <div style="font-size: 0.98rem; font-weight: 800; color: var(--text-main); margin-top: 0.15rem;">{{ $label }}</div>
+                    <p style="font-size: 0.76rem; color: var(--text-muted); margin-top: 0.35rem; line-height: 1.4;">{{ $plan->description }}</p>
+                </div>
+                <button type="submit" class="{{ $isCurrent ? 'btn-secondary' : 'btn-primary' }}" {{ $isCurrent ? 'disabled' : '' }} style="width: 100%; padding: 0.55rem; font-size: 0.8rem; font-weight: 700; cursor: {{ $isCurrent ? 'default' : 'pointer' }};">
+                    {{ $isCurrent ? '✓ Active Setup' : 'Switch to This Setup' }}
+                </button>
+            </form>
+        @endforeach
+    </div>
+</div>
+@endif
+
 <div class="grid-2">
     <!-- Shop configuration panel -->
     <div class="glass-panel">

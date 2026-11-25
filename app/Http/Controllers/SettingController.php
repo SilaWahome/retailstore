@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Tenant;
 use App\Models\Currency;
+use App\Models\SubscriptionPlan;
+use App\Models\DiningArea;
+use App\Models\RoomType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
@@ -15,7 +18,8 @@ class SettingController extends Controller
         $tenant = auth()->user()->tenant;
         $currencies = Currency::orderBy('code')->get();
         $baseCurrency = $currencies->where('is_base', true)->first() ?: $currencies->first();
-        return view('settings.index', compact('tenant', 'currencies', 'baseCurrency'));
+        $plans = SubscriptionPlan::where('is_active', true)->orderBy('price_ugx')->get();
+        return view('settings.index', compact('tenant', 'currencies', 'baseCurrency', 'plans'));
     }
 
     public function receiptSimulator()
@@ -233,5 +237,53 @@ class SettingController extends Controller
         session(['active_currency_id' => $currency->id]);
 
         return redirect()->back()->with('success', 'Display currency switched to ' . $currency->code . ' (' . $currency->symbol . ')');
+    }
+
+    /**
+     * Switch the tenant's business mode / setup (Retail Basic POS, Restaurant, Simple Hotel, Hotel Pro).
+     */
+    public function switchBusinessMode(Request $request)
+    {
+        $request->validate([
+            'plan_id' => 'required|exists:subscription_plans,id',
+        ]);
+
+        $tenant = auth()->user()->tenant;
+        $plan = SubscriptionPlan::where('is_active', true)->findOrFail($request->plan_id);
+
+        $tenant->update([
+            'business_type' => $plan->business_type,
+            'current_plan_id' => $plan->id,
+        ]);
+
+        if (in_array($plan->business_type, ['restaurant', 'hotel']) && !DiningArea::where('tenant_id', $tenant->id)->exists()) {
+            DiningArea::create([
+                'tenant_id' => $tenant->id,
+                'name' => 'Main Dining',
+                'width_m' => 15.00,
+                'length_m' => 12.00,
+                'sort_order' => 1,
+            ]);
+        }
+
+        if ($plan->business_type === 'hotel' && !RoomType::where('tenant_id', $tenant->id)->exists()) {
+            RoomType::create([
+                'tenant_id' => $tenant->id,
+                'name' => 'Standard Room',
+                'base_price_ugx' => 80000,
+                'capacity' => 2,
+                'description' => 'Default starter room category.',
+            ]);
+        }
+
+        if ($plan->business_type === 'hotel') {
+            return redirect()->route('hotel.rooms')->with('success', "Switched to {$plan->name}! Your Hotel setup is ready.");
+        }
+
+        if ($plan->business_type === 'restaurant') {
+            return redirect()->route('restaurant.tables')->with('success', "Switched to {$plan->name}! Your Restaurant POS is ready.");
+        }
+
+        return redirect()->route('settings.index')->with('success', "Switched to {$plan->name} (Basic Retail POS).");
     }
 }

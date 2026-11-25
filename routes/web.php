@@ -169,6 +169,7 @@ Route::middleware(['auth', CheckSubscription::class])->group(function () {
 
         Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
         Route::post('/settings', [SettingController::class, 'update'])->name('settings.update');
+        Route::post('/settings/business-mode', [SettingController::class, 'switchBusinessMode'])->name('settings.business-mode');
         Route::get('/receipt-simulator', [SettingController::class, 'receiptSimulator'])->name('receipt.simulator');
         Route::match(['get', 'post'], '/settings/currency', [SettingController::class, 'addCurrency'])->name('settings.add-currency');
         Route::match(['get', 'post'], '/settings/currency/set-base', [SettingController::class, 'setBaseCurrency'])->name('settings.set-base-currency');
